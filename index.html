@@ -13,7 +13,7 @@
 <link rel="icon" href="icons/favicon.ico" sizes="48x48 32x32 16x16">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/favicon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icons/favicon-512.png">
-<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>NEXUS ARCHIVE v3.1 // DoubleA · AntManThePro</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap');
@@ -283,6 +283,7 @@
   <footer>
     NEXUS ARCHIVE v3.1 // <span>DoubleA · AntManThePro</span> × GROK // VAULT + LINKS GATED // <span id="ghostLinks" style="cursor:pointer;opacity:.35">∴</span> // <span id="yr"></span>
   </footer>
+  <div id="antNote" hidden style="text-align:center;font-size:.62rem;opacity:.55;margin-top:.4rem;font-family:'Share Tech Mono',monospace">🐜 DoubleA was here &mdash; typed his own name into his own vault and it worked. <span style="opacity:.8">Small print: the vault floats in space, the ant files the paperwork. 41 artifacts, zero shortcuts. Not perfect, just real.</span></div>
 </div>
 
 <div id="overlay"><div class="modal pink" id="overlayBox"></div></div>
@@ -979,6 +980,8 @@ document.addEventListener('keydown', e => {
   if (!typing && e.key.length===1 && /[a-z0-9/:-]/i.test(e.key)) {
     STATE.typeBuf = (STATE.typeBuf + e.key.toLowerCase()).slice(-16);
     if (STATE.typeBuf.endsWith('protocol') || STATE.typeBuf.endsWith('nexus-7')) unlock('KEYSTREAM');
+    /* EASTER EGG: type 'doublea' anywhere outside a text box. Harmless; unlocks nothing. */
+    if (STATE.typeBuf.endsWith('doublea')) { toast('DOUBLEA WAS HERE'); const n=document.getElementById('antNote'); if(n) n.hidden=false; }
     if (STATE.typeBuf.endsWith('open://') || STATE.typeBuf.endsWith('livelinks')) unlockLinks('KEYSTREAM');
   }
 });
