@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0e27">
+<meta name="description" content="NEXUS ARCHIVE v3 — AntManThePro living portfolio vault">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="icon" href="icons/favicon.ico" sizes="48x48 32x32 16x16">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/favicon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/favicon-512.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<title>NEXUS ARCHIVE v3.1 // DoubleA · AntManThePro</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap');
+  :root {
+    --green:#00ff87; --cyan:#60efff; --pink:#ff0080; --yellow:#ffcc00;
+    --bg:#0a0e27; --surface:#0f1535; --surface2:#151c3d; --text:#c8d6f0; --dim:#4a5580;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { background:var(--bg); color:var(--text); font-family:Inter,sans-serif; min-height:100%; }
+  body { overflow-x:hidden; }
+  #bgCanvas { position:fixed; inset:0; width:100%; height:100%; z-index:0; opacity:.2; pointer-events:none; }
+  .layer { position:relative; z-index:1; }
+  button, input, select { font:inherit; }
+
+  /* BOOT */
+  #boot {
+    position:fixed; inset:0; z-index:80; background:#050712;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-family:'Share Tech Mono',monospace; color:var(--green);
+  }
+  #boot.hide { opacity:0; pointer-events:none; transition:opacity .5s ease; }
+  .boot-hex { width:72px; height:72px; margin-bottom:1.2rem; filter:drop-shadow(0 0 12px #00ff87); }
+  .boot-log { font-size:.72rem; letter-spacing:.12em; line-height:1.8; text-align:left; min-height:7rem; opacity:.85; }
+  .boot-bar { width:min(280px,70vw); height:3px; background:#132; margin-top:1.4rem; overflow:hidden; }
+  .boot-bar > i { display:block; height:100%; width:0; background:linear-gradient(90deg,var(--green),var(--cyan)); animation:load 1.6s ease forwards; }
+  @keyframes load { to { width:100%; } }
+
+  header { padding:1.6rem 1.2rem 1rem; text-align:center; border-bottom:1px solid rgba(96,239,255,.12); }
+  .logo-icon { width:52px; height:52px; margin:0 auto .7rem; display:block; cursor:pointer; }
+  .site-title {
+    font-family:Orbitron,monospace; font-weight:900; letter-spacing:.08em; line-height:1.1;
+    font-size:clamp(1.35rem,5vw,2.3rem);
+    background:linear-gradient(90deg,var(--green),var(--cyan),var(--pink));
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+  }
+  .site-sub { font-family:'Share Tech Mono',monospace; font-size:.72rem; color:var(--cyan); letter-spacing:.18em; margin-top:.35rem; opacity:.8; }
+  .stats-bar { display:flex; justify-content:center; gap:1.6rem; margin-top:1.1rem; flex-wrap:wrap; }
+  .stat { text-align:center; }
+  .stat-val { font-family:Orbitron,monospace; font-size:1.35rem; font-weight:700; color:var(--green); display:block; }
+  .stat-label { font-size:.6rem; color:var(--dim); letter-spacing:.14em; text-transform:uppercase; }
+
+  .controls {
+    padding:.9rem 1rem; display:flex; gap:.55rem; flex-wrap:wrap; align-items:center; justify-content:center;
+    position:sticky; top:0; z-index:12; background:rgba(10,14,39,.94); backdrop-filter:blur(14px);
+    border-bottom:1px solid rgba(96,239,255,.1);
+  }
+  .search-wrap { position:relative; flex:1; min-width:180px; max-width:340px; }
+  .search-wrap input {
+    width:100%; background:var(--surface); border:1px solid rgba(96,239,255,.25); border-radius:6px;
+    padding:.5rem .8rem .5rem 2.2rem; color:var(--text); font-family:'Share Tech Mono',monospace; font-size:.82rem; outline:none;
+  }
+  .search-wrap input:focus { border-color:var(--cyan); }
+  .search-icon { position:absolute; left:.7rem; top:50%; transform:translateY(-50%); opacity:.5; font-size:.85rem; }
+  .filter-btn, .view-btn {
+    background:var(--surface); border:1px solid rgba(96,239,255,.2); color:var(--dim);
+    padding:.42rem .78rem; border-radius:6px; font-family:'Share Tech Mono',monospace; font-size:.72rem;
+    cursor:pointer; letter-spacing:.04em; transition:all .15s;
+  }
+  .filter-btn:hover, .view-btn:hover { border-color:var(--cyan); color:var(--cyan); }
+  .filter-btn.active, .view-btn.active { border-color:var(--green); color:var(--green); background:rgba(0,255,135,.08); }
+  .filter-btn.locked { border-color:rgba(255,0,128,.35); color:#ff60a0; }
+  .filter-btn.locked.sealed { opacity:.7; }
+  .filter-btn.links-lock { border-color:rgba(96,239,255,.45); color:var(--cyan); }
+  .live-btn {
+    display:inline-flex; align-items:center; gap:.4rem; margin-top:.7rem;
+    background:rgba(96,239,255,.1); border:1px solid rgba(96,239,255,.4); color:var(--cyan);
+    padding:.4rem .7rem; border-radius:6px; font-family:'Share Tech Mono',monospace; font-size:.7rem;
+    text-decoration:none; letter-spacing:.06em;
+  }
+  .live-btn:hover { background:rgba(96,239,255,.2); color:#fff; }
+  .live-ghost {
+    margin-top:.7rem; font-family:'Share Tech Mono',monospace; font-size:.62rem; color:var(--dim);
+    letter-spacing:.12em; user-select:none;
+  }
+  .brand-chip { font-family:'Share Tech Mono',monospace; font-size:.62rem; letter-spacing:.16em; color:var(--pink); margin-bottom:.25rem; }
+  .brand-exp { font-family:'Share Tech Mono',monospace; font-size:.68rem; color:var(--green); letter-spacing:.14em; margin-top:.2rem; }
+  #linksWrap { display:none; padding:1rem; max-width:1400px; margin:0 auto; }
+  #linksWrap.show { display:block; }
+  .link-row {
+    display:flex; justify-content:space-between; align-items:center; gap:.8rem; flex-wrap:wrap;
+    background:var(--surface); border:1px solid rgba(96,239,255,.15); border-radius:8px; padding:.75rem .9rem; margin-bottom:.55rem;
+  }
+  .link-row a { color:var(--cyan); font-family:'Share Tech Mono',monospace; font-size:.74rem; word-break:break-all; }
+  .link-miss { color:var(--dim); font-family:'Share Tech Mono',monospace; font-size:.72rem; }
+  .sort-select {
+    background:var(--surface); border:1px solid rgba(96,239,255,.2); color:var(--cyan);
+    padding:.42rem .7rem; border-radius:6px; font-family:'Share Tech Mono',monospace; font-size:.72rem; outline:none;
+  }
+  .surprise-btn { background:rgba(255,0,128,.12); border-color:rgba(255,0,128,.4); color:var(--pink); }
+  .result-count { text-align:center; font-family:'Share Tech Mono',monospace; font-size:.68rem; color:var(--dim); padding:.55rem 1rem 0; letter-spacing:.1em; }
+
+  .archive-grid { padding:1.25rem; display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1.15rem; max-width:1400px; margin:0 auto; }
+  .card {
+    background:var(--surface); border:1px solid rgba(96,239,255,.1); border-radius:10px; overflow:hidden;
+    cursor:pointer; position:relative; animation:cardIn .4s ease both;
+  }
+  @keyframes cardIn { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+  .card:hover { border-color:rgba(96,239,255,.45); transform:translateY(-3px); box-shadow:0 8px 30px rgba(0,255,135,.08); }
+  .card.expanded { border-color:var(--green); }
+  .card.classified { border-color:rgba(255,0,128,.35); box-shadow:0 0 0 1px rgba(255,0,128,.12); }
+  .rank-badge { position:absolute; top:.7rem; left:.7rem; z-index:2; font-family:Orbitron,monospace; font-size:.62rem; font-weight:700; padding:.22rem .45rem; border-radius:4px; letter-spacing:.08em; }
+  .rank-1 { background:rgba(255,204,0,.2); color:var(--yellow); border:1px solid rgba(255,204,0,.4); }
+  .rank-2 { background:rgba(96,239,255,.15); color:var(--cyan); border:1px solid rgba(96,239,255,.35); }
+  .rank-3 { background:rgba(0,255,135,.12); color:var(--green); border:1px solid rgba(0,255,135,.3); }
+  .rank-top { background:rgba(255,0,128,.15); color:var(--pink); border:1px solid rgba(255,0,128,.35); }
+  .fav { position:absolute; top:.65rem; right:.7rem; z-index:2; background:transparent; border:0; color:var(--dim); cursor:pointer; font-size:1rem; }
+  .fav.on { color:var(--yellow); }
+  .card-visual { height:108px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+  .card-visual canvas { position:absolute; inset:0; width:100%; height:100%; }
+  .card-icon { position:relative; z-index:1; font-size:2.3rem; filter:drop-shadow(0 0 10px currentColor); }
+  .card-body { padding:.95rem; }
+  .card-category { font-family:'Share Tech Mono',monospace; font-size:.58rem; letter-spacing:.18em; text-transform:uppercase; margin-bottom:.35rem; opacity:.75; }
+  .card-title { font-family:Orbitron,monospace; font-size:.84rem; font-weight:700; color:#fff; line-height:1.3; margin-bottom:.45rem; }
+  .card-desc { font-size:.76rem; line-height:1.55; opacity:.82; }
+  .card-tags { display:flex; flex-wrap:wrap; gap:.32rem; margin-top:.7rem; }
+  .tag { font-family:'Share Tech Mono',monospace; font-size:.58rem; padding:.16rem .45rem; border-radius:3px; letter-spacing:.04em; }
+  .tag:hover { transform:translateY(-1px); }
+  .tag-js{background:rgba(255,204,0,.1);color:var(--yellow)} .tag-canvas{background:rgba(0,255,135,.1);color:var(--green)}
+  .tag-react{background:rgba(96,239,255,.1);color:var(--cyan)} .tag-ai{background:rgba(255,0,128,.12);color:var(--pink)}
+  .tag-webgl{background:rgba(96,239,255,.08);color:#a0c4ff} .tag-kec{background:rgba(255,204,0,.08);color:#ffd060}
+  .tag-api{background:rgba(255,0,128,.08);color:#ff60a0} .tag-game{background:rgba(0,255,135,.08);color:#60ffb0}
+  .tag-node{background:rgba(0,255,135,.06);color:#80ffb0} .tag-python{background:rgba(96,239,255,.06);color:#80d0ff}
+  .tag-hardware{background:rgba(96,239,255,.1);color:var(--cyan)} .tag-protocol{background:rgba(255,0,128,.18);color:var(--pink)}
+  .card-detail { display:none; padding:0 1rem 1rem; border-top:1px solid rgba(96,239,255,.1); margin-top:.4rem; }
+  .card.expanded .card-detail { display:block; }
+  .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:.5rem; margin-top:.7rem; }
+  .detail-item { background:var(--surface2); border-radius:6px; padding:.5rem .6rem; }
+  .detail-label { font-size:.58rem; color:var(--dim); letter-spacing:.14em; text-transform:uppercase; display:block; margin-bottom:.18rem; }
+  .detail-val { font-family:'Share Tech Mono',monospace; font-size:.74rem; color:var(--cyan); }
+  .impact-bar { margin-top:.7rem; }
+  .impact-label { display:flex; justify-content:space-between; font-size:.62rem; color:var(--dim); letter-spacing:.08em; margin-bottom:.3rem; }
+  .impact-label span:last-child { color:var(--green); }
+  .bar-track { height:4px; background:rgba(96,239,255,.1); border-radius:2px; overflow:hidden; }
+  .bar-fill { height:100%; border-radius:2px; }
+
+  #graphWrap, #vaultWrap { display:none; padding:1rem; max-width:1400px; margin:0 auto; }
+  #graphWrap.show, #vaultWrap.show { display:block; }
+  #graphCanvas { width:100%; height:min(70vh,620px); background:var(--surface); border:1px solid rgba(96,239,255,.15); border-radius:10px; cursor:grab; touch-action:none; }
+  .graph-hint { font-family:'Share Tech Mono',monospace; font-size:.68rem; color:var(--dim); text-align:center; margin-top:.5rem; }
+
+  .vault-term {
+    background:#070b1c; border:1px solid rgba(255,0,128,.35); border-radius:10px; padding:1rem 1.1rem;
+    font-family:'Share Tech Mono',monospace; font-size:.78rem; line-height:1.7; color:#b8d0ea;
+    min-height:220px; box-shadow:0 0 40px rgba(255,0,128,.08) inset;
+  }
+  .vault-term b { color:var(--yellow); }
+  .vault-term .ok { color:var(--green); }
+  .vault-term .bad { color:var(--pink); }
+  .vault-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem; margin-top:1rem; }
+
+  .empty-state { grid-column:1/-1; text-align:center; padding:3.5rem 1rem; color:var(--dim); font-family:'Share Tech Mono',monospace; }
+  footer { text-align:center; padding:1.8rem 1rem; border-top:1px solid rgba(96,239,255,.1); font-family:'Share Tech Mono',monospace; font-size:.64rem; color:var(--dim); letter-spacing:.1em; }
+  footer span { color:var(--green); }
+
+  /* overlays */
+  #overlay, #palette, #callsign {
+    position:fixed; inset:0; z-index:40; display:none; align-items:center; justify-content:center;
+    background:rgba(5,7,18,.82); backdrop-filter:blur(8px);
+  }
+  #overlay.show, #palette.show, #callsign.show { display:flex; }
+  .modal {
+    width:min(560px,92vw); background:#0c1230; border:1px solid rgba(0,255,135,.3); border-radius:12px; padding:1.2rem;
+    box-shadow:0 20px 80px rgba(0,0,0,.45);
+  }
+  .modal.pink { border-color:rgba(255,0,128,.45); }
+  .modal h2 { font-family:Orbitron,monospace; font-size:1rem; color:var(--green); margin-bottom:.7rem; }
+  .modal.pink h2 { color:var(--pink); }
+  #palette input, #callsign input {
+    width:100%; background:#0a0e27; border:1px solid rgba(96,239,255,.3); color:#fff; padding:.65rem .8rem;
+    border-radius:6px; font-family:'Share Tech Mono',monospace; outline:none;
+  }
+  #paletteList { margin-top:.6rem; max-height:50vh; overflow:auto; }
+  .pal-item { padding:.45rem .5rem; border-radius:6px; cursor:pointer; font-family:'Share Tech Mono',monospace; font-size:.78rem; }
+  .pal-item:hover, .pal-item.active { background:rgba(0,255,135,.1); color:var(--green); }
+  .toast {
+    position:fixed; bottom:1.2rem; left:50%; transform:translateX(-50%) translateY(20px); z-index:50;
+    background:#10183a; border:1px solid var(--green); color:var(--green); padding:.5rem .9rem; border-radius:6px;
+    font-family:'Share Tech Mono',monospace; font-size:.72rem; opacity:0; pointer-events:none; transition:.25s;
+  }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @media (max-width:640px) {
+    .archive-grid { grid-template-columns:1fr; padding:.9rem; }
+    .detail-grid { grid-template-columns:1fr; }
+    .controls { gap:.4rem; }
+  }
+</style>
+</head>
+<body>
+<div id="boot">
+  <svg class="boot-hex" viewBox="0 0 52 52" fill="none">
+    <polygon points="26,2 50,15 50,37 26,50 2,37 2,15" stroke="#00ff87" stroke-width="1.5" fill="rgba(0,255,135,0.06)"/>
+    <circle cx="26" cy="26" r="6" stroke="#ff0080" stroke-width="1.5"/>
+    <circle cx="26" cy="26" r="2" fill="#ff0080"/>
+  </svg>
+  <div class="boot-log" id="bootLog"></div>
+  <div class="boot-bar"><i></i></div>
+</div>
+
+<canvas id="bgCanvas"></canvas>
+
+<div class="layer">
+  <header>
+    <svg class="logo-icon" id="logo" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="NEXUS hex — triple click to request vault">
+      <polygon points="26,2 50,15 50,37 26,50 2,37 2,15" stroke="#00ff87" stroke-width="1.5" fill="rgba(0,255,135,0.06)"/>
+      <polygon points="26,10 42,19 42,33 26,42 10,33 10,19" stroke="#60efff" stroke-width="1" fill="rgba(96,239,255,0.05)"/>
+      <circle cx="26" cy="26" r="6" fill="none" stroke="#ff0080" stroke-width="1.5"/>
+      <line x1="26" y1="2" x2="26" y2="20" stroke="#00ff87" stroke-width="1" opacity="0.6"/>
+      <line x1="26" y1="32" x2="26" y2="50" stroke="#00ff87" stroke-width="1" opacity="0.6"/>
+      <line x1="2" y1="15" x2="20" y2="23" stroke="#60efff" stroke-width="1" opacity="0.6"/>
+      <line x1="32" y1="29" x2="50" y2="37" stroke="#60efff" stroke-width="1" opacity="0.6"/>
+      <line x1="50" y1="15" x2="32" y2="23" stroke="#ffcc00" stroke-width="1" opacity="0.6"/>
+      <line x1="20" y1="29" x2="2" y2="37" stroke="#ffcc00" stroke-width="1" opacity="0.6"/>
+      <circle cx="26" cy="26" r="2" fill="#ff0080"/>
+    </svg>
+    <div class="brand-chip">DoubleA · AntManThePro</div>
+    <div class="site-title">NEXUS ARCHIVE</div>
+    <div class="brand-exp">NExtended Xperimental USers</div>
+    <div class="site-sub">v3.1 VAULT + LIVE LINKS</div>
+    <div class="stats-bar">
+      <div class="stat"><span class="stat-val" id="totalCount">0</span><span class="stat-label">Visible</span></div>
+      <div class="stat"><span class="stat-val" id="catCount">0</span><span class="stat-label">Categories</span></div>
+      <div class="stat"><span class="stat-val" id="techCount">0</span><span class="stat-label">Tech Tags</span></div>
+      <div class="stat"><span class="stat-val" id="linesCount">0</span><span class="stat-label">Est. Lines</span></div>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="searchInput" placeholder="Search…  / focus  ·  ctrl+k palette" autocomplete="off" />
+    </div>
+    <button class="filter-btn active" data-cat="ALL">ALL</button>
+    <button class="filter-btn" data-cat="PORTFOLIO">PORTFOLIO</button>
+    <button class="filter-btn" data-cat="KEC OPS">KEC OPS</button>
+    <button class="filter-btn" data-cat="AI TOOL">AI TOOL</button>
+    <button class="filter-btn" data-cat="GAME">GAME</button>
+    <button class="filter-btn" data-cat="HARDWARE">HARDWARE</button>
+    <button class="filter-btn locked sealed" id="vaultChip" data-cat="VAULT">VAULT 🔒</button>
+    <button class="filter-btn locked sealed links-lock" id="linksChip" data-cat="LINKS">LIVE LINKS 🔒</button>
+    <select class="sort-select" id="sortSelect">
+      <option value="rank">⬆ RANK</option>
+      <option value="az">A → Z</option>
+      <option value="cat">CATEGORY</option>
+      <option value="impact">IMPACT</option>
+    </select>
+    <button class="view-btn active" data-view="grid">GRID</button>
+    <button class="view-btn" data-view="map">MAP</button>
+    <button class="filter-btn surprise-btn" id="surpriseBtn">SURPRISE</button>
+  </div>
+
+  <div class="result-count" id="resultCount"></div>
+  <div class="archive-grid" id="grid"></div>
+  <div id="graphWrap">
+    <canvas id="graphCanvas"></canvas>
+    <div class="graph-hint">DRAG NODES · CLICK TO OPEN · LINKS = SHARED TAGS · SCROLL TO ZOOM</div>
+  </div>
+  <div id="vaultWrap">
+    <div class="vault-term" id="vaultTerm"></div>
+    <div class="vault-grid" id="vaultGrid"></div>
+  </div>
+  <div id="linksWrap">
+    <div class="vault-term" id="linksTerm"></div>
+    <div id="linksList"></div>
+  </div>
+
+  <footer>
+    NEXUS ARCHIVE v3.1 // <span>DoubleA · AntManThePro</span> × GROK // VAULT + LINKS GATED // <span id="ghostLinks" style="cursor:pointer;opacity:.35">∴</span> // <span id="yr"></span>
+  </footer>
+</div>
+
+<div id="overlay"><div class="modal pink" id="overlayBox"></div></div>
+<div id="palette"><div class="modal"><h2>COMMAND PALETTE</h2><input id="palInput" placeholder="jump to artifact or command…"><div id="paletteList"></div></div></div>
+<div id="callsign"><div class="modal pink"><h2 id="csTitle">VAULT GATE</h2><p id="csHint" style="font-size:.78rem;opacity:.8;margin-bottom:.7rem;font-family:'Share Tech Mono',monospace">Enter callsign. Public search will not leak sealed records.</p><input id="csInput" placeholder="callsign" autocomplete="off"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+const CODES = new Set(['protocol','//protocol','vault','classified','nexus-7','antman protocol']);
+const LINK_CODES = new Set(['live','links','live links','live-links','href','url','urls','endpoint','endpoints','open://','goto']);
+const STATE = {
+  unlocked: sessionStorage.getItem('nexus_protocol_v3') === '1',
+  linksOpen: sessionStorage.getItem('nexus_links_v3') === '1',
+  gate: 'vault',
+  cat: 'ALL',
+  q: '',
+  sort: 'rank',
+  view: 'grid',
+  expanded: null,
+  favs: new Set(JSON.parse(localStorage.getItem('nexus_favs') || '[]')),
+  logoClicks: [],
+  typeBuf: ''
+};
+
+const LIVE = {
+  godmode:     { url:'https://antmanthepro.github.io/godmode', note:'PUBLIC · GitHub Pages' },
+  'kec-shield':{ url:'https://github.com/AntManThePro/kecshield', note:'BUILDING · repo link' },
+  tts:         { url:'', note:'DEPLOYED Netlify crew channel — operator hands URL, not the archive' },
+  'archive-v3':{ url:'./index.html', note:'THIS FILE · local / Pages drop-in' },
+  proto:       { url:'#unlock=protocol', note:'DEEP LINK · vault gate' },
+  manual:      { url:'#unlock=protocol', note:'DEEP LINK · vault manual' }
+};
+function liveOf(a){ return LIVE[a.id] || { url:'', note:'FIELD / ARTIFACT ONLY — no public endpoint' }; }
+function redact(text){
+  if (STATE.linksOpen) return text;
+  return String(text)
+    .replace(/https?:\/\/\S+/gi,'[REDACTED]')
+    .replace(/\b[\w.-]+\.(github\.io|netlify\.app|art|dev)(\/\S*)?/gi,'[REDACTED]');
+}
+
+const ARTIFACTS = [
+  { id:'godmode', rank:1, title:'GodMode Consciousness Engine', category:'PORTFOLIO', icon:'🧠', color:'#00ff87', bg:['#001a0f','#002a1a'],
+    desc:'Live Claude-powered portfolio deployed to antmanthepro.github.io/godmode. Canvas neural graph, 5 AI modes, XP system, ANTMAN PROTOCOL easter egg. Magnum opus.',
+    tags:['canvas','ai','react','api'], impact:99, lines:'~2,400', tech:'Vanilla HTML + Canvas + Anthropic API', status:'LIVE',
+    why:'AI + Canvas + XP + real deploy. The interview opener.',
+    detail:'Neural graph renders live. Each mode swaps system prompt and UI skin. Protocol sequence still lives here as an easter egg — the vault in this archive is the evolution of that idea, not a search hijack of this title.' },
+  { id:'hood-v1', rank:2, title:'Hood Boss Consciousness v1', category:'PORTFOLIO', icon:'⚡', color:'#ffcc00', bg:['#1a1400','#2a2000'],
+    desc:'Real net: 4D input → 16 neurons → tanh. 80 parameters, Hebbian learning, zero deps. Export weights to prove persistence.',
+    tags:['canvas','js','ai'], impact:97, lines:'~900', tech:'Vanilla HTML/JS, Canvas, neural math', status:'SHIPPED',
+    why:'ML from scratch. Show → export weights → prove it learned.',
+    detail:'Hebbian updates on correlated activations. Weight matrix persists via JSON export/import. Real math, not a skin.' },
+  { id:'kec-shield', rank:3, title:'KEC SHIELD', category:'KEC OPS', icon:'🛡️', color:'#ff0080', bg:['#1a0010','#2a0018'],
+    desc:'TWC defense + incident docs. FastAPI, HMAC webhooks, FieldPulse sync, Teams alerts, SQLite. Cites Texas Labor Code.',
+    tags:['python','api','kec'], impact:95, lines:'~3,100', tech:'FastAPI, SQLite, FieldPulse, Teams', status:'BUILDING → repo link',
+    why:'Real legal weight. Full-stack production thinking.',
+    detail:'HMAC on every inbound webhook. Packets include timestamps, crew IDs, photos, auto TWC language citing TX Labor Code §207.045.' },
+  { id:'qa-brain', rank:4, title:'Hood Boss Nexus QA Brain', category:'KEC OPS', icon:'🧬', color:'#00ff87', bg:['#001a0f','#002218'],
+    desc:'10-agent parallel QA mesh for kitchen exhaust jobs. Photo completeness, NFPA 96, fraud timestamps, coaching, verdict engine.',
+    tags:['ai','kec','js','canvas'], impact:94, lines:'~2,800', tech:'Multi-agent rubric + Canvas mesh + report compiler', status:'OPS READY',
+    why:'Turns field photo dumps into management-grade decisions. This is the brain behind the hood.',
+    detail:'Agents: QA, Safety, NFPA, Revenue, Training, Fraud, Customer, Ops, Regional, Exec Summary. Scores 0–100 with callback risk and coaching packets.' },
+  { id:'stealth', rank:5, title:'NEXUS Stealth Portable Hub', category:'HARDWARE', icon:'🛰️', color:'#60efff', bg:['#001018','#001a22'],
+    desc:'Field server: laptop mobo + TP-Link + SDR + power bank. Dashboard for clients, battery curves, camera-band energy detect.',
+    tags:['js','hardware','node'], impact:92, lines:'~1,500 + fw', tech:'Linux, Node, RTL-SDR, TP-Link, battery math', status:'IN FIELD USE',
+    why:'Hardware + web in one package. Edge/IoT interview catnip.',
+    detail:'SDR sweep 2.4/5 GHz energy. Auto-failover link. 4096-bit key gate before mount. Built to look like a media box, think like a command post.' },
+  { id:'morph', rank:6, title:'NEXUS Morphogenesis Engine', category:'PORTFOLIO', icon:'🌊', color:'#ff0080', bg:['#1a0015','#250020'],
+    desc:'WebGL2 Gray-Scott reaction-diffusion. Ping-pong framebuffers. Living GPU patterns — sponge, coral, maze, pulse.',
+    tags:['webgl','canvas','js'], impact:91, lines:'~1,200', tech:'WebGL2, GLSL, FBO ping-pong', status:'SHOWCASE',
+    why:'Pure GPU compute in the browser.',
+    detail:'Two-pass FBO swap. Feed/kill live-tweakable. Shader-first thinking, not a library wrapper.' },
+  { id:'shake', rank:7, title:'NEXUS SHAKE LAB v3', category:'AI TOOL', icon:'🧪', color:'#60efff', bg:['#001522','#002030'],
+    desc:'56 real grocery ingredients. Canvas blend, mobile-first, live macros.',
+    tags:['canvas','js','react'], impact:88, lines:'~1,800', tech:'Vanilla HTML, Canvas, CSS', status:'COMPLETE',
+    why:'Consumer product thinking with real nutrition data.',
+    detail:'Particle blend on add/remove. Macros recompute instantly.' },
+  { id:'crew', rank:8, title:'Crew-O-Meter FastAPI Backend', category:'KEC OPS', icon:'📡', color:'#00ff87', bg:['#001a0f','#001505'],
+    desc:'HMAC webhooks, crew risk score, anomaly detect, Teams alerts across DFW + Austin.',
+    tags:['python','api','kec'], impact:87, lines:'~2,200', tech:'FastAPI, HMAC, FieldPulse, Teams', status:'BUILT',
+    why:'Composite risk with real field signals.',
+    detail:'Weights: time-of-day 35%, GPS drift 25%, duration 20%, pattern break 20%. Alert >72.' },
+  { id:'cortex', rank:9, title:'Hood Boss Cortex Command', category:'PORTFOLIO', icon:'🧬', color:'#00ff87', bg:['#001a0f','#002218'],
+    desc:'Multi-tab Canvas: dispatch routing, Hebbian net, oscilloscope/FFT.',
+    tags:['canvas','js','ai'], impact:86, lines:'~2,100', tech:'Canvas, Hebbian, DSP', status:'SHIPPED',
+    why:'Routing + learning + signal processing in one skin.',
+    detail:'A* approx dispatch. Live weight colors. FFT on synthetic traces.' },
+  { id:'tgbot', rank:10, title:'Telegram Bot MVP', category:'AI TOOL', icon:'🤖', color:'#60efff', bg:['#001020','#001830'],
+    desc:'3,700+ line Node system. Claude/GPT adapter, Supabase memory, safety filter, deploy docs.',
+    tags:['node','ai','api'], impact:85, lines:'~3,700', tech:'Node, Telegram, Anthropic, OpenAI, Supabase', status:'DELIVERED',
+    why:'Multi-provider memory bots are easy to fake and hard to ship.',
+    detail:'Adapter per user. Vector-ready history schema. Filter before every outbound.' },
+  { id:'fieldterm', rank:11, title:'NEXUS Field Ops Terminal v3.0', category:'PORTFOLIO', icon:'🗺️', color:'#ffcc00', bg:['#1a1200','#221800'],
+    desc:'Three.js topology + Dijkstra on a simulated DFW field net.',
+    tags:['webgl','js','canvas'], impact:84, lines:'~1,600', tech:'Three.js, Dijkstra, WebGL', status:'SHIPPED',
+    why:'Algorithms + 3D. Rare combo.',
+    detail:'Nodes = DFW zones. Step-through Dijkstra. Edge weights from travel estimates.' },
+  { id:'cog', rank:12, title:'NEXUS Cognitive Interface v2', category:'PORTFOLIO', icon:'💎', color:'#60efff', bg:['#001020','#001828'],
+    desc:'React: PITCH, BATTLE, ARCHITECT, SCAN, ORACLE. Skin + prompt swap. Persistence.',
+    tags:['react','ai','api'], impact:83, lines:'~1,400', tech:'React, Anthropic, localStorage', status:'BUILT',
+    why:'BATTLE mode (Claude vs GPT scored) is still novel.',
+    detail:'Parallel calls, scoring overlay, chain-of-thought ORACLE.' },
+  { id:'unruly', rank:13, title:'UNRULY Mobile Game', category:'GAME', icon:'🎮', color:'#00ff87', bg:['#001a0f','#001505'],
+    desc:'Rule-breaking React game. Freemium UNRULY Pro. iOS / Play / PWA target.',
+    tags:['react','game'], impact:82, lines:'IN PROGRESS', tech:'React / PWA', status:'🔴 IN DEV',
+    why:'Games expose real-time state discipline portfolios usually dodge.',
+    detail:'Rules invert mid-match. UI lies. Contract with the player is the mechanic.' },
+  { id:'forge', rank:14, title:'NEXUS Forge Kernel Lab', category:'PORTFOLIO', icon:'⚒️', color:'#ffcc00', bg:['#1a1400','#241800'],
+    desc:'Live kernel injection into a particle-node graph. Hot-reload JS, visual backprop, compile-to-payload.',
+    tags:['canvas','js','ai','webgl'], impact:90, lines:'~1,700', tech:'Canvas graph, new Function kernels, loss viz', status:'SHOWCASE',
+    why:'Proves live coding, not a recorded demo.',
+    detail:'Edit customKernel(p,node,t), hot reload, watch dataflow and loss landscape respond.' },
+  { id:'meridian', rank:15, title:'MERIDIAN Operator Companion', category:'AI TOOL', icon:'🧭', color:'#60efff', bg:['#001018','#001828'],
+    desc:'Guidance layer for high-load operators. Splits facts / interpretation / ownership / next action. Not therapy.',
+    tags:['ai','js'], impact:81, lines:'~900', tech:'Prompt architecture + decision frames', status:'ACTIVE MODE',
+    why:'Shows product taste: tools for people who already carry too much.',
+    detail:'Five-lane frame. No fake warmth. Concrete next moves only.' },
+  { id:'wraith', rank:16, title:'NEXUS WRAITH v1/v2', category:'PORTFOLIO', icon:'👻', color:'#ff0080', bg:['#1a0015','#200018'],
+    desc:'Multi-provider Battle Mode predecessor. Streaming dual type race.',
+    tags:['react','ai','api'], impact:80, lines:'~1,100', tech:'React, Claude, OpenAI', status:'LEGACY → EVOLVED',
+    why:'Invented the comparison UI later refined in Cognitive v2.',
+    detail:'Ref-slotted streams so two models can type without stomping state.' },
+  { id:'pyramid', rank:17, title:'Twisted Genius Pyramid CSS 3D Twin', category:'PORTFOLIO', icon:'🔷', color:'#ffcc00', bg:['#1a1400','#201800'],
+    desc:'CSS 3D twin of the pyramid jewelry box. Panels unfold. No animation libs.',
+    tags:['js','canvas'], impact:78, lines:'~800', tech:'CSS 3D, perspective, transition', status:'SHOWCASE',
+    why:'Most devs dodge CSS 3D because it bites.',
+    detail:'preserve-3d faces, hinge-like cubic-bezier.' },
+  { id:'fp-dash', rank:18, title:'FieldPulse Intelligence Dashboard', category:'KEC OPS', icon:'📊', color:'#60efff', bg:['#001018','#001520'],
+    desc:'Original Hood Boss backend. HMAC + Z-score duration anomalies. Ancestor of Crew-O-Meter and SHIELD.',
+    tags:['python','api','kec'], impact:76, lines:'~1,500', tech:'FastAPI, FieldPulse, SQLite', status:'FOUNDATION',
+    why:'Pattern source for every later field tool.',
+    detail:'Z-score v1 evolved into composite scoring.' },
+  { id:'dstike', rank:20, title:'DSTIKE Bad USB Payload System', category:'HARDWARE', icon:'🔌', color:'#ff0080', bg:['#1a0010','#200015'],
+    desc:'ATmega32U4 HID, DIP payload select, DuckyScript for authorized research.',
+    tags:['hardware','js'], impact:74, lines:'N/A (firmware)', tech:'ATmega32U4, DuckyScript, Arduino', status:'HARDWARE BUILD',
+    why:'Web + embedded in one resume line.',
+    detail:'Boot index from DIP. HID enum + staged delays.' },
+  { id:'bible', rank:21, title:'NEXUS Mega Terminal Bible', category:'PORTFOLIO', icon:'⌨️', color:'#00ff87', bg:['#001a0f','#001208'],
+    desc:'118 commands, Linux/Win/cross. Search, filter, copy. GitHub-ready pack.',
+    tags:['js','node'], impact:72, lines:'~1,900', tech:'Vanilla HTML, CSS Grid', status:'PACKAGED',
+    why:'Content authority for DevOps/SRE conversations.',
+    detail:'OS + danger tags. 150ms debounce search.' },
+  { id:'tts', rank:22, title:'KEC Training Slides (Mobile TTS)', category:'KEC OPS', icon:'📋', color:'#ffcc00', bg:['#1a1200','#1e1600'],
+    desc:'Swipe training + Web Speech + verification traps. Netlify for crew.',
+    tags:['js','kec'], impact:70, lines:'~600', tech:'HTML, Web Speech API', status:'DEPLOYED',
+    why:'Real users. Traps catch skippers.',
+    detail:'Wrong answers flag. Narration for listeners > readers.' },
+  { id:'handoff', rank:23, title:'Handoff Protocol Engine', category:'PORTFOLIO', icon:'📐', color:'#60efff', bg:['#001018','#001624'],
+    desc:'High-stakes review frame: decompose claims, re-derive, tag known vs inferred vs assumed.',
+    tags:['js','ai'], impact:79, lines:'~700', tech:'Decision protocol + checklist UI', status:'INTERNAL STANDARD',
+    why:'Shows how you think when being wrong is expensive.',
+    detail:'Self-attack pass before conclude. Used on architecture and load calls.' },
+  { id:'collab', rank:24, title:'Collaborative Evolution Layer', category:'AI TOOL', icon:'🤝', color:'#ff0080', bg:['#1a0014','#22001c'],
+    desc:'Partnership method that refuses deflection. Specificity first. Authenticity as an engineered loop.',
+    tags:['ai','js'], impact:77, lines:'~500', tech:'Dialogue protocol + pattern log', status:'LIVING METHOD',
+    why:'The meta-skill behind every NEXUS build with Grok.',
+    detail:'Detect hedge → demand concrete → log reusable methods → carry forward.' },
+  { id:'stm32', rank:25, title:'STM32 Nucleo + ILI9341 Display', category:'HARDWARE', icon:'🖥️', color:'#60efff', bg:['#001018','#001422'],
+    desc:'STM32 driving ILI9341 toward a Flipper-class handheld. SPI, DMA, custom widgets.',
+    tags:['hardware'], impact:68, lines:'N/A (C)', tech:'STM32 HAL, SPI, ILI9341, C', status:'IN PROGRESS',
+    why:'Embedded + web is a rare pairing.',
+    detail:'SPI ~10MHz, DMA blits, bitmap fonts in flash.' },
+  { id:'latency', rank:26, title:'KEC Latency Cost Calculator', category:'KEC OPS', icon:'💰', color:'#00ff87', bg:['#001a0f','#001208'],
+    desc:'First Hood Boss tool. Delay cost: labor, truck, opportunity. Palette origin.',
+    tags:['js','kec'], impact:65, lines:'~400', tech:'Vanilla HTML/JS', status:'LEGACY TOOL',
+    why:'Where #00ff87 locked in.',
+    detail:'Time-value decay curve. Origin myth, still honest math.' },
+  { id:'surface', rank:27, title:'Dual-Boot Surface Pro 7', category:'HARDWARE', icon:'💻', color:'#ffcc00', bg:['#1a1200','#1c1400'],
+    desc:'Ubuntu 24.04 + Win11, rEFInd, linux-surface patches, WSL2 mirror.',
+    tags:['hardware'], impact:60, lines:'N/A', tech:'Ubuntu, rEFInd, WSL2', status:'OPERATIONAL',
+    why:'Surface Linux is pain. Shipping it is persistence.',
+    detail:'Themed rEFInd splash. Cross-OS toolchain parity.' },
+  { id:'parrot', rank:28, title:'Parrot OS on WSL2', category:'HARDWARE', icon:'🦜', color:'#60efff', bg:['#001018','#001220'],
+    desc:'Pentest distro isolated on Windows host. Research toolchain only.',
+    tags:['hardware'], impact:58, lines:'N/A', tech:'WSL2, Parrot, Wireshark', status:'RESEARCH',
+    why:'Isolation done properly.',
+    detail:'Bridged LAN view, GUI via X410, no host bleed.' },
+  { id:'lockers', rank:29, title:'Employee Locker Schedule Signs', category:'KEC OPS', icon:'📌', color:'#ffcc00', bg:['#1a1200','#181000'],
+    desc:'Printable Hood Boss signs + QR to digital roster.',
+    tags:['js','kec'], impact:45, lines:'~200', tech:'HTML/CSS print', status:'PRINTED & DEPLOYED',
+    why:'Brand survives paper.',
+    detail:'Print media queries + two physical layouts.' },
+  { id:'systems', rank:30, title:'Systems Builder Architecture Map', category:'PORTFOLIO', icon:'🏗️', color:'#00ff87', bg:['#00140c','#001a12'],
+    desc:'How NEXUS pieces lock: frontend, API, data, QA, deploy, rollback. Not a mood board — a build contract.',
+    tags:['js','api'], impact:84, lines:'~600', tech:'Architecture protocol', status:'STANDARD',
+    why:'Recruiters buy systems, not screenshots.',
+    detail:'Every artifact is scored against modularity, observability, and fail-closed defaults.' },
+  { id:'archive-v3', rank:31, title:'NEXUS Archive v3 (This Artifact)', category:'PORTFOLIO', icon:'📦', color:'#ff0080', bg:['#1a0015','#25001a'],
+    desc:'Self-hosting vault. Gated classified layer, constellation graph, command palette, PWA icons, session-sealed access. You are standing in it.',
+    tags:['js','canvas'], impact:96, lines:'~2,400', tech:'Vanilla HTML/JS/CSS, Canvas forces, session gate', status:'LIVE (YOU ARE HERE)',
+    why:'The portfolio that manages the portfolio — without leaking the vault.',
+    detail:'v2 showed PROTOCOL in ALL and stole the GodMode search. v3 seals classified records until a real callsign, then opens a terminal + vault view.' },
+
+  /* CLASSIFIED — never rendered until STATE.unlocked */
+  { id:'proto', rank:101, classified:true, title:'ANTMAN PROTOCOL', category:'PROTOCOL', icon:'🔐', color:'#ff0080', bg:['#0a0015','#1a0025'],
+    desc:'Sealed access layer. Directives, field gates, and the inner-circle manual. Not a search result.',
+    tags:['protocol','hidden'], impact:100, lines:'CLASSIFIED', tech:'Session gate + terminal + dynamic category', status:'SEALED / UNSEALED BY CALLSIGN',
+    why:'Access control as a product, not a CSS trick.',
+    detail:'Unlocked by exact callsign, triple-click hex, typed PROTOCOL, or NEXUS.unlock(). Public queries never list this row.' },
+  { id:'runbook', rank:102, classified:true, title:'INNER CIRCLE RUNBOOK', category:'PROTOCOL', icon:'📓', color:'#ffcc00', bg:['#140e00','#1c1400'],
+    desc:'Operator runbook: vault hygiene, deploy order, what gets shown vs what stays field-only.',
+    tags:['protocol','kec'], impact:93, lines:'CLASSIFIED', tech:'Playbook', status:'SEALED',
+    why:'Process is part of the flex.',
+    detail:'Public portfolio never names live crew PII, site addresses, or credential material. Demos use synthetic traces.' },
+  { id:'key-sop', rank:103, classified:true, title:'STEALTH KEY SOP', category:'PROTOCOL', icon:'🗝️', color:'#60efff', bg:['#001018','#001422'],
+    desc:'Key hygiene for the portable hub: generate, store, rotate, revoke. No key material lives in this file.',
+    tags:['protocol','hardware'], impact:91, lines:'CLASSIFIED', tech:'Ops SOP', status:'SEALED',
+    why:'Security theater is cards. SOP is behavior.',
+    detail:'4096-bit keys stay on device. Archive only documents the ritual, never the secrets.' },
+  { id:'manual', rank:104, classified:true, title:'NEXUS MANUAL v3', category:'PROTOCOL', icon:'📖', color:'#00ff87', bg:['#00140c','#001a10'],
+    desc:'Full operator manual for this archive: views, keys, deep links, what v2 got wrong.',
+    tags:['protocol','js'], impact:88, lines:'CLASSIFIED', tech:'Product manual', status:'SEALED',
+    why:'If you can open the vault you should know how to drive it.',
+    detail:'Grid / Map / Vault. / search. ctrl+k jump. g/c/v views. #unlock=protocol. Favorites persist locally.' }
+];
+
+function visibleArtifacts() {
+  return ARTIFACTS.filter(a => STATE.unlocked || !a.classified);
+}
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._id); toast._id = setTimeout(() => t.classList.remove('show'), 2200);
+}
+function rankClass(r){ if(r===1||r>=100) return 'rank-top'; if(r<=3) return 'rank-1'; if(r<=6) return 'rank-2'; return 'rank-3'; }
+function rankLabel(r){ if(r>=100) return 'SEALED'; if(r===1) return '★ FLAGSHIP'; if(r<=3) return `#${r} ELITE`; if(r<=10) return `#${r} CORE`; return `#${r}`; }
+function barColor(n){ if(n>=90) return 'linear-gradient(90deg,#ffcc00,#ff0080)'; if(n>=80) return 'linear-gradient(90deg,#00ff87,#60efff)'; if(n>=70) return 'linear-gradient(90deg,#60efff,#00ff87)'; return 'linear-gradient(90deg,#4a5580,#60efff)'; }
+function statusColor(s){ if(/LIVE|DEPLOYED|READY|USE|YOU ARE/.test(s)) return '#00ff87'; if(/DEV|BUILD|PROGRESS/.test(s)) return '#ffcc00'; if(/LEGACY|SEALED/.test(s)) return '#4a5580'; return '#60efff'; }
+function tagClass(t){ return 'tag-' + (['js','canvas','react','ai','webgl','kec','api','game','node','python','hardware','protocol'].includes(t)?t:'js'); }
+
+function updateStats() {
+  const vis = visibleArtifacts();
+  const cats = new Set(vis.map(a => a.category));
+  const tags = new Set(); vis.forEach(a => a.tags.forEach(t => tags.add(t)));
+  const lines = vis.reduce((n,a) => n + (parseInt(String(a.lines).replace(/[^0-9]/g,''))||0), 0);
+  document.getElementById('totalCount').textContent = vis.length;
+  document.getElementById('catCount').textContent = cats.size;
+  document.getElementById('techCount').textContent = tags.size;
+  document.getElementById('linesCount').textContent = (lines/1000).toFixed(0) + 'K+';
+}
+
+function filterList() {
+  let list = visibleArtifacts();
+  if (STATE.cat === 'VAULT') list = list.filter(a => a.classified);
+  else if (STATE.cat === 'LINKS') list = STATE.linksOpen ? list.filter(a => !a.classified || STATE.unlocked) : [];
+  else if (STATE.cat !== 'ALL') list = list.filter(a => a.category === STATE.cat);
+  if (STATE.q.trim()) {
+    const q = STATE.q.toLowerCase();
+    list = list.filter(a => (a.title+' '+a.desc+' '+a.tech+' '+a.tags.join(' ')).toLowerCase().includes(q));
+  }
+  if (STATE.sort === 'az') list.sort((a,b)=>a.title.localeCompare(b.title));
+  else if (STATE.sort === 'cat') list.sort((a,b)=>a.category.localeCompare(b.category)||a.rank-b.rank);
+  else if (STATE.sort === 'impact') list.sort((a,b)=>b.impact-a.impact);
+  else list.sort((a,b)=>a.rank-b.rank);
+  return list;
+}
+
+function cardHTML(a, i) {
+  const exp = STATE.expanded === a.id;
+  return `<div class="card${exp?' expanded':''}${a.classified?' classified':''}" data-id="${a.id}" style="animation-delay:${Math.min(i,12)*0.03}s">
+    <div class="card-visual" style="background:linear-gradient(135deg,${a.bg[0]},${a.bg[1]})">
+      <canvas class="mini" data-seed="${a.rank}" data-color="${a.color}"></canvas>
+      <span class="card-icon" style="color:${a.color}">${a.icon}</span>
+    </div>
+    <div class="rank-badge ${rankClass(a.rank)}">${rankLabel(a.rank)}</div>
+    <button class="fav${STATE.favs.has(a.id)?' on':''}" data-fav="${a.id}" title="pin">★</button>
+    <div class="card-body">
+      <div class="card-category" style="color:${a.color}">${a.category}</div>
+      <div class="card-title" data-hold="${a.id}">${a.title}</div>
+      <div class="card-desc">${redact(a.desc)}</div>
+      <div class="card-tags">${a.tags.map(t=>`<span class="tag ${tagClass(t)}" data-tag="${t}">${t.toUpperCase()}</span>`).join('')}</div>
+    </div>
+    <div class="card-detail">
+      <div class="impact-bar"><div class="impact-label"><span>IMPACT</span><span>${a.impact}/100</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${a.impact}%;background:${barColor(a.impact)}"></div></div>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">TECH</span><span class="detail-val">${a.tech}</span></div>
+        <div class="detail-item"><span class="detail-label">LINES</span><span class="detail-val">${a.lines}</span></div>
+        <div class="detail-item"><span class="detail-label">STATUS</span><span class="detail-val" style="color:${statusColor(a.status)}">${a.status}</span></div>
+        <div class="detail-item"><span class="detail-label">WHY</span><span class="detail-val" style="color:#c8d6f0;font-size:.68rem;line-height:1.4">${a.why}</span></div>
+      </div>
+      <div style="margin-top:.7rem;padding:.6rem;background:rgba(0,255,135,.04);border-radius:6px;border-left:2px solid ${a.color}">
+        <div class="detail-label">DEPTH</div>
+        <div style="font-size:.72rem;line-height:1.55;color:#a0b0d0">${redact(a.detail)}</div>
+      </div>
+      ${liveSlot(a)}
+    </div>
+  </div>`;
+}
+
+function liveSlot(a){
+  if (!STATE.linksOpen) {
+    return `<div class="live-ghost" data-hunt="${a.id}">ENDPOINT SEALED · HOLD TITLE 1.4s OR ASK FOR LINKS</div>`;
+  }
+  const L = liveOf(a);
+  if (L.url) {
+    const href = L.url.startsWith('#') || L.url.startsWith('./') ? L.url : L.url;
+    return `<a class="live-btn" href="${href}" target="_blank" rel="noopener">${a.icon} OPEN LIVE · ${L.note}</a>
+            <div style="margin-top:.35rem;font-family:'Share Tech Mono',monospace;font-size:.68rem;color:var(--cyan);word-break:break-all">${L.url}</div>`;
+  }
+  return `<div class="live-ghost">${L.note}</div>`;
+}
+
+function paintMinis() {
+  document.querySelectorAll('canvas.mini').forEach(c => {
+    const w = c.width = c.offsetWidth || 300;
+    const h = c.height = c.offsetHeight || 108;
+    const ctx = c.getContext('2d');
+    const col = c.dataset.color || '#00ff87';
+    const seed = Number(c.dataset.seed)||1;
+    ctx.clearRect(0,0,w,h);
+    ctx.strokeStyle = col; ctx.globalAlpha = .28; ctx.lineWidth = 1;
+    for (let i=0;i<8;i++){
+      ctx.beginPath();
+      const y = (h/8)*i + (seed%7);
+      ctx.moveTo(0,y); ctx.lineTo(w,y+Math.sin(seed+i)*6);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = .45;
+    for (let i=0;i<12;i++){
+      const x = (Math.sin(seed*1.7+i)*0.5+0.5)*w;
+      const y = (Math.cos(seed*0.9+i*1.3)*0.5+0.5)*h;
+      ctx.beginPath(); ctx.arc(x,y,1.2,0,Math.PI*2); ctx.fillStyle=col; ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  });
+}
+
+function renderGrid() {
+  const list = filterList();
+  const grid = document.getElementById('grid');
+  document.getElementById('resultCount').textContent =
+    `SHOWING ${list.length} OF ${visibleArtifacts().length} VISIBLE` + (STATE.unlocked ? '  ·  VAULT OPEN' : '  ·  VAULT SEALED') + (STATE.linksOpen ? '  ·  LINKS OPEN' : '  ·  LINKS SEALED');
+  if (!list.length) { grid.innerHTML = '<div class="empty-state">// NO MATCH //</div>'; return; }
+  grid.innerHTML = list.map((a,i)=>cardHTML(a,i)).join('');
+  paintMinis();
+}
+
+const VAULT_TEXT = `<span class="ok">ACCESS GRANTED</span>  ·  IDENTITY ANTMANTHEPRO  ·  LEVEL GODMODE
+<b>NEXUS ARCHIVE v3 — CLASSIFIED BRIEF</b>
+
+v2 failure: PROTOCOL row lived in ALL. Query "godmode" hijacked category and hid the flagship engine. "Unlock" was a filter costume.
+
+v3 contract:
+• classified:true records are omitted from every public list, count, map node, and export
+• callsigns are exact — protocol / //protocol / vault / classified / nexus-7 / antman protocol
+• godmode and antman remain normal search tokens
+• sessionStorage reseals on tab close
+• no secrets, keys, crew PII, or live frequencies ship in this file
+
+FIELD GATES
+Stealth Hub — key check before mount. SDR is energy-detect + legal-monitor only.
+KEC SHIELD — unsigned webhooks die. Composite risk >72 pages out.
+QA Brain — 10 agents, NFPA 96, fraud timestamps, coaching packet, verdict.
+
+KEYS  / search   ctrl+k jump   g grid  c map  v vault   ? surprise
+DEEP  #unlock=protocol   console NEXUS.unlock('protocol')
+
+<span class="ok">This session is gated. Welcome back, Ant.</span>`;
+
+function renderVault() {
+  document.getElementById('vaultTerm').innerHTML = VAULT_TEXT.replace(/\n/g,'<br>');
+  const sealed = visibleArtifacts().filter(a => a.classified);
+  document.getElementById('vaultGrid').innerHTML = sealed.map((a,i)=>cardHTML(a,i)).join('');
+  paintMinis();
+  document.getElementById('resultCount').textContent = `VAULT · ${sealed.length} SEALED RECORDS OPEN`;
+}
+
+const LINKS_TEXT = `<span class="ok">LIVE DIRECTORY UNSEALED</span>  ·  YOU ASKED FOR THE URLS
+Public cards never print hrefs. Recruiters who wander see work, not a link farm.
+Operators who type <b>live</b> / <b>links</b> / <b>href</b> / <b>open://</b> get the directory.
+
+Hold any card title 1.4s · click footer ∴ · #unlock=links · NEXUS.links()
+Field-only builds stay listed as NO PUBLIC ENDPOINT. That is honest, not broken.`;
+
+function renderLinksDir(){
+  const rows = visibleArtifacts().slice().sort((a,b)=> (liveOf(b).url?1:0)-(liveOf(a).url?1:0) || a.rank-b.rank);
+  document.getElementById('linksTerm').innerHTML = LINKS_TEXT.replace(/\n/g,'<br>');
+  document.getElementById('linksList').innerHTML = rows.map(a=>{
+    const L = liveOf(a);
+    const right = L.url ? `<a href="${L.url}" target="_blank" rel="noopener">${L.url}</a>` : `<span class="link-miss">${L.note}</span>`;
+    return `<div class="link-row"><div><b style="color:#fff">${a.icon} ${a.title}</b><div class="link-miss">${L.note}</div></div>${right}</div>`;
+  }).join('');
+  document.getElementById('resultCount').textContent = `LIVE LINKS · ${rows.filter(a=>liveOf(a).url).length} PUBLIC · ${rows.filter(a=>!liveOf(a).url).length} FIELD-ONLY`;
+}
+
+/* constellation */
+const G = { nodes:[], running:false, scale:1, ox:0, oy:0, drag:null };
+function buildGraph() {
+  const list = visibleArtifacts();
+  const cw = document.getElementById('graphCanvas');
+  const w = cw.width = cw.clientWidth * devicePixelRatio;
+  const h = cw.height = cw.clientHeight * devicePixelRatio;
+  G.nodes = list.map((a,i) => ({
+    a, x: w/2 + Math.cos(i)*180, y: h/2 + Math.sin(i)*120,
+    vx:0, vy:0, r: 10 + a.impact/20
+  }));
+}
+function stepGraph() {
+  if (STATE.view !== 'map') { G.running=false; return; }
+  const nodes = G.nodes, n = nodes.length;
+  for (let i=0;i<n;i++){
+    for (let j=i+1;j<n;j++){
+      const A=nodes[i], B=nodes[j];
+      let dx=B.x-A.x, dy=B.y-A.y, d=Math.hypot(dx,dy)||1;
+      const shared = A.a.tags.filter(t => B.a.tags.includes(t)).length;
+      const want = shared ? 140 : 220;
+      const f = (d-want)*0.004;
+      dx/=d; dy/=d;
+      A.vx += dx*f; A.vy += dy*f; B.vx -= dx*f; B.vy -= dy*f;
+      const rep = 800/(d*d);
+      A.vx -= dx*rep; A.vy -= dy*rep; B.vx += dx*rep; B.vy += dy*rep;
+    }
+  }
+  const cw = document.getElementById('graphCanvas');
+  const cx = cw.width/2, cy = cw.height/2;
+  nodes.forEach(p => {
+    p.vx += (cx-p.x)*0.002; p.vy += (cy-p.y)*0.002;
+    p.vx *= 0.86; p.vy *= 0.86;
+    if (G.drag !== p) { p.x += p.vx; p.y += p.vy; }
+  });
+  const ctx = cw.getContext('2d');
+  ctx.setTransform(G.scale,0,0,G.scale,G.ox,G.oy);
+  ctx.clearRect(-5000,-5000,10000,10000);
+  ctx.lineWidth = 1;
+  for (let i=0;i<n;i++){
+    for (let j=i+1;j<n;j++){
+      const shared = nodes[i].a.tags.filter(t => nodes[j].a.tags.includes(t)).length;
+      if (!shared) continue;
+      ctx.strokeStyle = nodes[i].a.color;
+      ctx.globalAlpha = Math.min(.15*shared, .4);
+      ctx.beginPath(); ctx.moveTo(nodes[i].x,nodes[i].y); ctx.lineTo(nodes[j].x,nodes[j].y); ctx.stroke();
+    }
+  }
+  ctx.globalAlpha = 1;
+  nodes.forEach(p => {
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle = p.a.color; ctx.globalAlpha=.85; ctx.fill();
+    ctx.globalAlpha=1;
+    ctx.fillStyle='#c8d6f0'; ctx.font = `${11*devicePixelRatio}px "Share Tech Mono"`;
+    ctx.fillText(p.a.title.slice(0,22), p.x+p.r+4, p.y+4);
+  });
+  requestAnimationFrame(stepGraph);
+}
+function bindGraph() {
+  const cw = document.getElementById('graphCanvas');
+  const hit = (x,y) => {
+    const r = cw.getBoundingClientRect();
+    const px = (x-r.left)*devicePixelRatio, py = (y-r.top)*devicePixelRatio;
+    const wx = (px-G.ox)/G.scale, wy = (py-G.oy)/G.scale;
+    return G.nodes.find(p => Math.hypot(p.x-wx,p.y-wy) < p.r+8) || null;
+  };
+  cw.onpointerdown = e => { G.drag = hit(e.clientX,e.clientY); cw.setPointerCapture(e.pointerId); };
+  cw.onpointermove = e => {
+    if (!G.drag) return;
+    const r = cw.getBoundingClientRect();
+    G.drag.x = ((e.clientX-r.left)*devicePixelRatio - G.ox)/G.scale;
+    G.drag.y = ((e.clientY-r.top)*devicePixelRatio - G.oy)/G.scale;
+  };
+  cw.onpointerup = e => {
+    const n = hit(e.clientX,e.clientY);
+    if (n && G.drag === n) { STATE.view='grid'; STATE.expanded=n.a.id; setView(); renderGrid();
+      setTimeout(()=>{ const el=document.querySelector(`[data-id="${n.a.id}"]`); if(el) el.scrollIntoView({behavior:'smooth',block:'center'}); },40);
+    }
+    G.drag=null;
+  };
+  cw.addEventListener('wheel', e => { e.preventDefault(); G.scale = Math.min(2.2, Math.max(.4, G.scale*(e.deltaY<0?1.08:.92))); }, {passive:false});
+}
+
+function setView() {
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.dataset.view===STATE.view));
+  document.getElementById('grid').style.display = STATE.view==='grid' ? 'grid' : 'none';
+  document.getElementById('graphWrap').classList.toggle('show', STATE.view==='map');
+  document.getElementById('vaultWrap').classList.toggle('show', STATE.view==='vault');
+  const lw = document.getElementById('linksWrap');
+  if (lw) lw.classList.toggle('show', STATE.view==='links');
+  if (STATE.view==='map') { buildGraph(); if(!G.running){ G.running=true; stepGraph(); } }
+  if (STATE.view==='vault') {
+    if (!STATE.unlocked) { STATE.view='grid'; setView(); openCallsign('vault'); return; }
+    renderVault();
+  }
+  if (STATE.view==='links') {
+    if (!STATE.linksOpen) { STATE.view='grid'; setView(); openCallsign('links'); return; }
+    renderLinksDir();
+  }
+}
+
+function setCat(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  else {
+    const el = document.querySelector(`.filter-btn[data-cat="${cat}"]`);
+    if (el) el.classList.add('active');
+  }
+  STATE.cat = cat; STATE.expanded=null;
+  if (cat==='VAULT') { STATE.view='vault'; setView(); }
+  else if (cat==='LINKS') { STATE.view='links'; setView(); }
+  else { if (STATE.view==='vault' || STATE.view==='links') STATE.view='grid'; setView(); renderGrid(); }
+}
+
+function unlock(reason) {
+  if (STATE.unlocked) { toast('VAULT ALREADY OPEN'); STATE.view='vault'; STATE.cat='VAULT'; setView(); return; }
+  STATE.unlocked = true;
+  sessionStorage.setItem('nexus_protocol_v3','1');
+  const chip = document.getElementById('vaultChip');
+  chip.textContent = 'VAULT 🔓';
+  chip.classList.remove('sealed');
+  updateStats();
+  const box = document.getElementById('overlayBox');
+  box.innerHTML = `<h2>ACCESS GRANTED</h2>
+    <p style="font-family:'Share Tech Mono',monospace;font-size:.78rem;line-height:1.7">
+    CALLSIGN ACCEPTED<br>CHANNEL ${reason||'GATE'}<br>CLASSIFIED ROWS INJECTED<br>PUBLIC INDEX UNCHANGED
+    </p>`;
+  document.getElementById('overlay').classList.add('show');
+  setTimeout(() => {
+    document.getElementById('overlay').classList.remove('show');
+    STATE.view='vault'; STATE.cat='VAULT'; STATE.q='';
+    document.getElementById('searchInput').value='';
+    setCat('VAULT', chip);
+  }, 1100);
+}
+
+function maybeUnlockFromQuery(raw) {
+  const q = raw.toLowerCase().trim();
+  if (CODES.has(q)) { unlock('SEARCH'); return true; }
+  if (LINK_CODES.has(q)) { unlockLinks('SEARCH'); return true; }
+  return false;
+}
+
+function unlockLinks(reason){
+  if (STATE.linksOpen) { toast('LINKS ALREADY OPEN'); STATE.view='links'; STATE.cat='LINKS'; setView(); return; }
+  STATE.linksOpen = true;
+  sessionStorage.setItem('nexus_links_v3','1');
+  const chip = document.getElementById('linksChip');
+  chip.textContent = 'LIVE LINKS 🔓';
+  chip.classList.remove('sealed');
+  const box = document.getElementById('overlayBox');
+  box.innerHTML = `<h2>ENDPOINTS UNSEALED</h2>
+    <p style="font-family:'Share Tech Mono',monospace;font-size:.78rem;line-height:1.7">
+    CHANNEL ${reason||'GATE'}<br>PUBLIC HREFS NOW VISIBLE<br>FIELD-ONLY ROWS STAY HONEST
+    </p>`;
+  document.getElementById('overlay').classList.add('show');
+  setTimeout(() => {
+    document.getElementById('overlay').classList.remove('show');
+    STATE.q=''; document.getElementById('searchInput').value='';
+    setCat('LINKS', chip);
+  }, 1000);
+}
+
+function openCallsign(kind) {
+  STATE.gate = kind || 'vault';
+  const title = document.getElementById('csTitle');
+  const hint = document.getElementById('csHint');
+  if (STATE.gate === 'links') {
+    title.textContent = 'LIVE LINKS GATE';
+    hint.textContent = 'You only get hrefs if you came looking. Try live / links / href / open://';
+  } else {
+    title.textContent = 'VAULT GATE';
+    hint.textContent = 'Enter vault callsign. Public search will not leak sealed records.';
+  }
+  document.getElementById('callsign').classList.add('show');
+  const i = document.getElementById('csInput'); i.value=''; setTimeout(()=>i.focus(),30);
+}
+function closeOverlays() {
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('palette').classList.remove('show');
+  document.getElementById('callsign').classList.remove('show');
+}
+
+function surprise() {
+  const list = filterList(); if(!list.length) return;
+  const a = list[Math.floor(Math.random()*list.length)];
+  STATE.view='grid'; STATE.expanded=a.id; setView(); renderGrid();
+  setTimeout(()=>{ const el=document.querySelector(`[data-id="${a.id}"]`);
+    if(el){ el.scrollIntoView({behavior:'smooth',block:'center'}); el.style.boxShadow='0 0 0 4px rgba(255,0,128,.65)';
+      setTimeout(()=>{ if(el) el.style.boxShadow=''; },1200);} },50);
+}
+
+function openPalette() {
+  document.getElementById('palette').classList.add('show');
+  const i = document.getElementById('palInput'); i.value=''; renderPalette(''); setTimeout(()=>i.focus(),20);
+}
+function renderPalette(q) {
+  const qq = q.toLowerCase();
+  const cmds = [
+    {id:'cmd-grid', title:'VIEW GRID', run:()=>{STATE.view='grid'; setView(); renderGrid();}},
+    {id:'cmd-map', title:'VIEW CONSTELLATION', run:()=>{STATE.view='map'; setView();}},
+    {id:'cmd-vault', title:'VIEW VAULT', run:()=>{ if(!STATE.unlocked) openCallsign(); else { STATE.view='vault'; setView(); } }},
+    {id:'cmd-unlock', title:'REQUEST VAULT ACCESS', run:()=>openCallsign('vault')},
+    {id:'cmd-links', title:'REQUEST LIVE LINKS', run:()=>{ if(STATE.linksOpen){ STATE.view='links'; setView(); } else openCallsign('links'); }},
+    {id:'cmd-surp', title:'SURPRISE ME', run:surprise},
+    {id:'cmd-export', title:'EXPORT VISIBLE JSON', run:exportJSON}
+  ];
+  const arts = visibleArtifacts().filter(a => a.title.toLowerCase().includes(qq) || a.id.includes(qq));
+  const items = [...cmds.filter(c=>c.title.toLowerCase().includes(qq)||!qq), ...arts.map(a=>({id:a.id,title:a.title,run:()=>{
+    STATE.view='grid'; STATE.expanded=a.id; setView(); renderGrid();
+    setTimeout(()=>{ const el=document.querySelector(`[data-id="${a.id}"]`); if(el) el.scrollIntoView({behavior:'smooth',block:'center'}); },40);
+  }}))];
+  document.getElementById('paletteList').innerHTML = items.slice(0,16).map((it,i)=>`<div class="pal-item${i===0?' active':''}" data-run="${it.id}">${it.title}</div>`).join('');
+  renderPalette._items = items;
+}
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(visibleArtifacts().map(({detail,...r})=>{
+    const row = {...r};
+    if (!STATE.linksOpen) { delete row.live; }
+    else row.live = liveOf(r);
+    return row;
+  }),null,2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='nexus-archive-visible.json'; a.click();
+  toast('EXPORTED VISIBLE INDEX');
+}
+
+/* events */
+document.getElementById('searchInput').addEventListener('input', e => {
+  if (maybeUnlockFromQuery(e.target.value)) return;
+  STATE.q = e.target.value; STATE.expanded=null; if(STATE.view==='grid') renderGrid();
+});
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.id==='vaultChip' && !STATE.unlocked) { openCallsign('vault'); return; }
+    if (btn.id==='linksChip' && !STATE.linksOpen) { openCallsign('links'); return; }
+    if (btn.id==='surpriseBtn') return;
+    setCat(btn.dataset.cat, btn);
+  });
+});
+document.getElementById('surpriseBtn').addEventListener('click', surprise);
+document.getElementById('sortSelect').addEventListener('change', e => { STATE.sort=e.target.value; renderGrid(); });
+document.querySelectorAll('.view-btn').forEach(b => b.addEventListener('click', () => {
+  if (b.dataset.view==='vault' && !STATE.unlocked) { openCallsign('vault'); return; }
+  STATE.view = b.dataset.view; setView(); if(STATE.view==='grid') renderGrid();
+}));
+document.getElementById('grid').addEventListener('click', e => {
+  if (e.target.closest('.live-btn')) { e.stopPropagation(); return; }
+  const hunt = e.target.closest('[data-hunt]');
+  if (hunt && !STATE.linksOpen) { openCallsign('links'); e.stopPropagation(); return; }
+  const fav = e.target.closest('[data-fav]');
+  if (fav) { const id=fav.dataset.fav; if(STATE.favs.has(id)) STATE.favs.delete(id); else STATE.favs.add(id);
+    localStorage.setItem('nexus_favs', JSON.stringify([...STATE.favs])); fav.classList.toggle('on'); e.stopPropagation(); return; }
+  const tag = e.target.closest('[data-tag]');
+  if (tag) { STATE.q = tag.dataset.tag; document.getElementById('searchInput').value=STATE.q; renderGrid(); e.stopPropagation(); return; }
+  const card = e.target.closest('.card'); if(!card) return;
+  STATE.expanded = STATE.expanded===card.dataset.id ? null : card.dataset.id; renderGrid();
+});
+document.getElementById('vaultGrid').addEventListener('click', e => {
+  const card = e.target.closest('.card'); if(!card) return;
+  STATE.expanded = STATE.expanded===card.dataset.id ? null : card.dataset.id; renderVault();
+});
+document.getElementById('csInput').addEventListener('keydown', e => {
+  if (e.key==='Enter') {
+    const q = e.target.value.toLowerCase().trim();
+    if (STATE.gate==='links') {
+      if (LINK_CODES.has(q)) { closeOverlays(); unlockLinks('GATE'); }
+      else toast('DENIED — TRY live / links / href');
+    } else {
+      if (CODES.has(q)) { closeOverlays(); unlock('GATE'); }
+      else toast('DENIED');
+    }
+  }
+  if (e.key==='Escape') closeOverlays();
+});
+document.getElementById('palInput').addEventListener('input', e => renderPalette(e.target.value));
+document.getElementById('palInput').addEventListener('keydown', e => {
+  if (e.key==='Enter' && renderPalette._items && renderPalette._items[0]) { closeOverlays(); renderPalette._items[0].run(); }
+  if (e.key==='Escape') closeOverlays();
+});
+document.getElementById('paletteList').addEventListener('click', e => {
+  const it = e.target.closest('.pal-item'); if(!it) return;
+  const found = (renderPalette._items||[]).find(x=>x.id===it.dataset.run || x.title===it.textContent);
+  closeOverlays(); if(found) found.run();
+});
+document.getElementById('overlay').addEventListener('click', e => { if(e.target.id==='overlay') closeOverlays(); });
+document.getElementById('palette').addEventListener('click', e => { if(e.target.id==='palette') closeOverlays(); });
+document.getElementById('callsign').addEventListener('click', e => { if(e.target.id==='callsign') closeOverlays(); });
+
+let logoN=0, logoT=0;
+document.getElementById('logo').addEventListener('click', () => {
+  const now=Date.now(); if(now-logoT>700) logoN=0; logoT=now; logoN++;
+  if (logoN>=3) { logoN=0; if(STATE.unlocked) { STATE.view='vault'; setView(); } else openCallsign('vault'); }
+});
+
+document.addEventListener('keydown', e => {
+  const tag = document.activeElement && document.activeElement.tagName;
+  const typing = tag==='INPUT' || tag==='TEXTAREA';
+  if (e.key==='Escape') closeOverlays();
+  if ((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==='k') { e.preventDefault(); openPalette(); return; }
+  if (!typing && e.key==='/') { e.preventDefault(); document.getElementById('searchInput').focus(); return; }
+  if (!typing && e.key==='?') { e.preventDefault(); surprise(); return; }
+  if (!typing && e.key.toLowerCase()==='g') { STATE.view='grid'; setView(); renderGrid(); }
+  if (!typing && e.key.toLowerCase()==='c') { STATE.view='map'; setView(); }
+  if (!typing && e.key.toLowerCase()==='v') { if(STATE.unlocked){ STATE.view='vault'; setView(); } else openCallsign('vault'); }
+  if (!typing && e.key.toLowerCase()==='l') { if(STATE.linksOpen){ STATE.view='links'; STATE.cat='LINKS'; setView(); } /* l alone is not enough — keep hunting */ }
+  if (!typing && e.key.length===1 && /[a-z0-9/:-]/i.test(e.key)) {
+    STATE.typeBuf = (STATE.typeBuf + e.key.toLowerCase()).slice(-16);
+    if (STATE.typeBuf.endsWith('protocol') || STATE.typeBuf.endsWith('nexus-7')) unlock('KEYSTREAM');
+    if (STATE.typeBuf.endsWith('open://') || STATE.typeBuf.endsWith('livelinks')) unlockLinks('KEYSTREAM');
+  }
+});
+
+/* bg particles */
+const bgC=document.getElementById('bgCanvas'), bgX=bgC.getContext('2d');
+let bw,bh,parts=[], mx=-9e3,my=-9e3;
+window.addEventListener('mousemove', e=>{ mx=e.clientX; my=e.clientY; });
+function resizeBg(){ bw=bgC.width=innerWidth; bh=bgC.height=innerHeight; }
+function initParts(){
+  parts=[]; const N=Math.min(90, Math.floor(bw*bh/17000));
+  const cols=['#00ff87','#60efff','#ff0080','#ffcc00'];
+  for(let i=0;i<N;i++) parts.push({x:Math.random()*bw,y:Math.random()*bh,vx:(Math.random()-.5)*.45,vy:(Math.random()-.5)*.45,r:Math.random()*1.6+.4,c:cols[i%4]});
+}
+function drawBg(){
+  bgX.clearRect(0,0,bw,bh);
+  parts.forEach(p=>{
+    if(mx>-9000){ const dx=p.x-mx,dy=p.y-my,d=Math.hypot(dx,dy)||1; if(d<160){ const f=(160-d)/160*1.2; p.vx+=(dx/d)*f*.5; p.vy+=(dy/d)*f*.5; } }
+    p.x+=p.vx; p.y+=p.vy; if(p.x<0)p.x=bw; if(p.x>bw)p.x=0; if(p.y<0)p.y=bh; if(p.y>bh)p.y=0;
+    p.vx*=.982; p.vy*=.982;
+  });
+  for(let i=0;i<parts.length;i++) for(let j=i+1;j<parts.length;j++){
+    const dx=parts[i].x-parts[j].x, dy=parts[i].y-parts[j].y, d=Math.hypot(dx,dy);
+    if(d<118){ bgX.beginPath(); bgX.strokeStyle=parts[i].c; bgX.globalAlpha=(1-d/118)*.26; bgX.lineWidth=.6;
+      bgX.moveTo(parts[i].x,parts[i].y); bgX.lineTo(parts[j].x,parts[j].y); bgX.stroke(); }
+  }
+  bgX.globalAlpha=1;
+  parts.forEach(p=>{ bgX.beginPath(); bgX.arc(p.x,p.y,p.r,0,Math.PI*2); bgX.fillStyle=p.c; bgX.fill(); });
+  requestAnimationFrame(drawBg);
+}
+window.addEventListener('resize', ()=>{ resizeBg(); initParts(); if(STATE.view==='map') buildGraph(); });
+resizeBg(); initParts(); drawBg();
+bindGraph();
+
+/* boot + hash */
+const bootLines = ['NEXUS BIOS 3.1','MOUNTING ARCHIVE INDEX','HMAC PUBLIC LAYER OK','VAULT PARTITION SEALED','LIVE LINKS PARTITION SEALED','RENDER GRID'];
+const bootLog = document.getElementById('bootLog');
+bootLines.forEach((l,i)=> setTimeout(()=>{ bootLog.innerHTML += (i? '<br>':'') + '// '+l; }, 180+i*220));
+setTimeout(()=> document.getElementById('boot').classList.add('hide'), 1700);
+setTimeout(()=> document.getElementById('boot').remove(), 2300);
+
+updateStats();
+if (STATE.unlocked) {
+  const chip=document.getElementById('vaultChip'); chip.textContent='VAULT 🔓'; chip.classList.remove('sealed');
+}
+if (STATE.linksOpen) {
+  const chip=document.getElementById('linksChip'); chip.textContent='LIVE LINKS 🔓'; chip.classList.remove('sealed');
+}
+renderGrid();
+
+let holdT=null;
+document.addEventListener('pointerdown', e => {
+  const t = e.target.closest('[data-hold]');
+  if (!t) return;
+  holdT = setTimeout(()=>{
+    if (STATE.linksOpen) { STATE.expanded = t.dataset.hold; renderGrid(); toast('ENDPOINT VISIBLE'); }
+    else openCallsign('links');
+  }, 1400);
+});
+document.addEventListener('pointerup', ()=> clearTimeout(holdT));
+document.addEventListener('pointercancel', ()=> clearTimeout(holdT));
+const ghost = document.getElementById('ghostLinks');
+if (ghost) ghost.addEventListener('click', ()=> STATE.linksOpen ? (STATE.view='links', setCat('LINKS', document.getElementById('linksChip'))) : openCallsign('links'));
+
+const hash = decodeURIComponent(location.hash.slice(1));
+if (hash.startsWith('unlock=')) maybeUnlockFromQuery(hash.slice(7));
+if (hash.startsWith('id=')) {
+  const id=hash.slice(3); const a=visibleArtifacts().find(x=>x.id===id);
+  if(a){ STATE.expanded=id; renderGrid(); }
+}
+
+window.NEXUS = {
+  unlock: (code) => { if (code && CODES.has(String(code).toLowerCase().trim())) unlock('CONSOLE'); else toast('NEED VALID CALLSIGN'); },
+  links: (code) => { if (!code || LINK_CODES.has(String(code).toLowerCase().trim())) unlockLinks('CONSOLE'); else toast('NEED LINKS CALLSIGN'); },
+  lock: () => { sessionStorage.removeItem('nexus_protocol_v3'); sessionStorage.removeItem('nexus_links_v3'); location.reload(); },
+  export: exportJSON,
+  state: STATE
+};
+console.log('%c[NEXUS ARCHIVE v3.1] Two gates. Vault: NEXUS.unlock("protocol"). Links: type live / links / href, hold a title, or NEXUS.links().', 'color:#60efff;font-family:monospace');
+</script>
+</body>
+</html>
